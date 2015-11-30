@@ -115,6 +115,15 @@ defmodule BypassTest do
     assert_received ^ref
   end
 
+  test "when the test process terminates, bypass gets a chance to check it's been called" do
+    bypass = Bypass.open
+    Bypass.expect(bypass, fn conn ->
+      Plug.Conn.send_resp(conn, 200, "")
+      :timer.sleep(1000)
+    end)
+    assert {:ok, 200, ""} == request(bypass.port)
+  end
+
   @doc ~S"""
   Open a new HTTP connection and perform the request. We don't want to use httpc, hackney or another
   "high-level" HTTP client, since they do connection pooling and we will sometimes get a connection
